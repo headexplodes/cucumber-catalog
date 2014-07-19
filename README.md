@@ -1,0 +1,1 @@
+<?xml-stylesheet href="src/main/resources/cucumber-catalog.xslt" type="text/xsl"?>

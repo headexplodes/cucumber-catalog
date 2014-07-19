@@ -56,9 +56,13 @@ public class CatalogModel {
         public String description;
 
         @XmlElement
-        public String source;
-
-        // TODO: tags, groups
+        public String file;
+        
+        @XmlElement
+        public Integer lineStart;
+        
+        @XmlElement
+        public Integer lineEnd;
 
     }
 
