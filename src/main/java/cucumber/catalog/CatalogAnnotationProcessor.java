@@ -7,7 +7,6 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.PrintWriter;
 import java.io.StringWriter;
-import java.util.HashSet;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Set;
@@ -53,7 +52,7 @@ import cucumber.catalog.xml.CatalogModel.StepClass;
 public class CatalogAnnotationProcessor extends AbstractProcessor {
 
     private CatalogModel model = new CatalogModel();
-    private Set<String> files = new HashSet<String>();
+    //private Set<String> files = new HashSet<String>();
 
     public boolean process(Set<? extends TypeElement> annotations,
             RoundEnvironment env) {
@@ -69,7 +68,7 @@ public class CatalogAnnotationProcessor extends AbstractProcessor {
         if (foundMethod) { // only write file if we actually found something
 
             String outputFilename = System.getProperty("catalog.output.file",
-                    "cucumber-catalog.html");
+                    "cucumber_catalog.html");
             
             File xmlFile = new File(outputFilename.replace(".html", ".xml"));
             File htmlFile =  new File(outputFilename.replace(".xml", ".html"));
@@ -86,7 +85,7 @@ public class CatalogAnnotationProcessor extends AbstractProcessor {
                 JAXBContext ctx = JAXBContext.newInstance(CatalogModel.class);
 
                 InputStream xsltStream = getClass().getResourceAsStream(
-                        "/cucumber-catalog.xsl");
+                        "/cucumber_catalog.xsl");
                 try {
 
                     TransformerFactory factory = TransformerFactory
@@ -195,12 +194,6 @@ public class CatalogAnnotationProcessor extends AbstractProcessor {
                 String.format("Found step method: %s.%s.%s", packageName,
                         className, step.method));
     }
-
-    // private String printElements(Element elem) {
-    // StringWriter buffer = new StringWriter();
-    // processingEnv.getElementUtils().printElements(buffer, elem);
-    // return buffer.toString();
-    // }
 
     private Element nextSibling(Element elem) {
         Element last = null;

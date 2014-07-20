@@ -5,7 +5,6 @@ import java.util.List;
 
 import javax.xml.bind.annotation.XmlAttribute;
 import javax.xml.bind.annotation.XmlElement;
-import javax.xml.bind.annotation.XmlElementWrapper;
 import javax.xml.bind.annotation.XmlElements;
 import javax.xml.bind.annotation.XmlRootElement;
 import javax.xml.bind.annotation.XmlValue;
@@ -73,16 +72,13 @@ public class CatalogModel {
     public static class Step {
 
         @XmlElement
-        public String type; // Given etc.
+        public String type; // Given/When/Then
         
         @XmlElement
         public String method;
         
         @XmlElement
         public String pattern;
-        
-//        @XmlElement
-//        public String source;
         
         @XmlElement
         public String description;

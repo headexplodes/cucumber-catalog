@@ -7,13 +7,16 @@
          encoding="UTF-8"
          indent="yes" />
 
+    <xsl:template match="/">
+        <xsl:text disable-output-escaping="yes">&lt;!DOCTYPE html></xsl:text>
+        <xsl:apply-templates/>
+    </xsl:template>
+
     <xsl:template match="/catalog">
         <html>
             <head>
                 <title>Cucumber Step Catalog</title>
-                <style>
-
-                    /* cream: #fcf6c8; */
+                <style type="text/css">
 
                     html, body, h1, h2 {
                         padding: 0;
@@ -54,10 +57,22 @@
                         position: fixed;
                         left: 0;
                         top: 0;
-                        width: 400;
+                        width: 400px;
                         background-color: #c5d88a;
                         min-height: 100%;
                         padding: 10px;
+
+                    }
+                    
+                    #index h1 {
+                        color: #164b2b;
+                    }
+                    
+                    #index .logo {           
+                        opacity: 0.5;
+                        position: absolute;
+                        top: 0;
+                        right: 0;
                     }
                     
                     #index ul {
@@ -67,8 +82,6 @@
                     #content {
                         margin-left: 420px;
                         padding: 0 10px;
-                        height: 100%;
-                        overflow: scroll;
                     }
                     
                     span.annotation {
@@ -95,26 +108,27 @@
                     .javadoc pre, .javadoc code {
                         background-color: #eee;
                     }
-                    
-                    body.with-source #sources {
-                        display: block;
+
+                    #source-templates {
+                        display: none;
                     }
-                    
-                    body.with-source #sources {
-                        display: block;
-                    }
-                    
-                    #sources {
-                        position: fixed;
-                        right: 0;
-                        left: 420px;
-                        bottom: 0;
-                        height: 500px;
+
+                    .source {
+                        height: 200px;
                         overflow: hidden;
                         overflow-y: scroll;
-                        padding: 10px;
-                        background-color: #eee;
-                        display: none;
+                        background-color: #666;
+                        color: #eee;
+                        position: relative;
+                        transition: height .5s;
+                    }
+
+                    #sources-close {
+                        position: relative;
+                        width: 50px;
+                        height: 20px;
+                        background-color: #666;
+                        left: -50px;
                     }
                     
                     .source-line {
@@ -130,9 +144,13 @@
                         margin: 10px 0;
                     }
                     
+                    .source-container {
+
+                    }
+                    
                     .line-no {
                         display: inline-block;
-                        color: #999;;
+                        color: #999;
                         width: 3em;
                     }
                     
@@ -140,16 +158,104 @@
                         white-space: pre;
                     }
                     
-                    :target {
+                    .hilight {
                         background-color: #fcf6c8;
+                        color: #333;
                     }
 
                 </style>
-            </head>
-            <body>
-                <div id="index">
-                    <h1>Cucumber Step Catalog</h1>
+                <script style="text/javascript">
+                    <![CDATA[
                     
+                    Element.prototype.hasClassName = function(name) {
+                        return new RegExp("(?:^|\\s+)" + name + "(?:\\s+|$)").test(this.className);
+                    };
+
+                    Element.prototype.addClassName = function(name) {
+                        if (!this.hasClassName(name)) {
+                            this.className = this.className ? [this.className, name].join(' ') : name;
+                        }
+                    };
+
+                    Element.prototype.removeClassName = function(name) {
+                        if (this.hasClassName(name)) {
+                            var c = this.className;
+                            this.className = c.replace(new RegExp("(?:^|\\s+)" + name + "(?:\\s+|$)", "g"), "");
+                        }
+                    };
+                    
+                    function getSourceElement(filename) {
+                        return document.querySelector("#source-templates .source[data-filename='" + filename + "']").cloneNode(true); // deep clone
+                    }
+                    
+                    function toggleHeight(elem, height) {
+                        if (elem.clientHeight == 0) {
+                            elem.style.height = height;
+                        } else {
+                            elem.style.height = "0";
+                        }
+                    }
+                                        
+                    function setOnClick(item) {
+                        item.onclick = function(e) {
+                        
+                            var cont = item.parentElement.parentElement.querySelector(".source-container");
+                            
+                            if (cont.firstChild) {
+                                
+                                toggleHeight(cont.firstChild, "200px");
+                                
+                            } else {
+                            
+                                var filename = item.getAttribute("data-filename");
+                                var lineNo = item.getAttribute("data-line"); 
+                                
+                                var src = getSourceElement(filename);
+                                                    
+                                cont.appendChild(src);
+                                
+                                src.style.height = "0";
+                                window.getComputedStyle(src).height // trigger browser to acknowledge changed style
+                                
+                                removeClassAll(src, "hilight");
+                                
+                                var line = src.querySelector("div[data-line='" + lineNo + "']");
+
+                                line.addClassName("hilight");
+
+                                src.style.height = "200px";
+                                src.scrollTop = line.offsetTop;
+                            
+                            }
+                            
+                            e.preventDefault();
+                        };
+                    }
+                    
+                    function removeClassAll(elem, name) {
+                        var nodes = elem.querySelectorAll(".hilight");
+                        for (var i = 0; i < nodes.length; ++i) {
+                            nodes[i].removeClassName(name);
+                        }
+                    }
+                    
+                    function onLoad() {
+                        var nodes = document.querySelectorAll("a.filename");
+                        for (var i = 0; i < nodes.length; ++i) {
+                            setOnClick(nodes[i]);
+                        }
+                    }
+
+                    ]]>
+                </script>
+            </head>
+            <body onload="onLoad()">
+                <div id="index">
+                    <div class="logo">
+                        <img src="cucumber_logo.png"/>
+                    </div>
+                    <h1>Cucumber Step Catalog</h1>
+                    <br/>
                     <h2>Index</h2>
                     <ul>
                         <xsl:apply-templates select="package" mode="index"/>
@@ -158,7 +264,7 @@
                 <div id="content">                
                     <xsl:apply-templates select="package" />
                 </div>
-                <div id="sources">
+                <div id="source-templates">
                     <xsl:apply-templates select="//source"/>
                 </div>
             </body>
@@ -192,9 +298,6 @@
         <ul>
             <xsl:apply-templates select="step" />
         </ul>
-        <!-- 
-        <xsl:apply-templates select="source"/>
-        -->
     </xsl:template>
     
     <xsl:template match="step">
@@ -203,7 +306,10 @@
             
             <xsl:apply-templates select="description"/>
             
-            <p>Source: <a href="#{file}:{lineStart}" class="filename"><xsl:value-of select="file" />:<xsl:value-of select="lineStart" /></a></p>
+            <p><a href="javascript:" class="filename" data-filename="{file}" data-line="{lineStart}">
+                    <xsl:value-of select="file"/>:<xsl:value-of select="lineStart"/></a></p>
+            
+            <div class="source-container"/>
         </li>
     </xsl:template>
     
@@ -214,17 +320,13 @@
     </xsl:template>
     
     <xsl:template match="source">
-        <div class="source">
-            <div class="source-name">
-                <xsl:value-of select="name"/>
-            </div>
+        <div class="source" data-filename="{name}">
             <xsl:apply-templates select="line"/>
         </div>
     </xsl:template>
     
-    <xsl:template match="source/line">
-        <div class="source-line" data-line="{@line}" id="{../name}:{@line}">
-            <!-- <a name="{../name}:{@line}"/> -->
+    <xsl:template match="line">
+        <div class="source-line" data-line="{@line}">
             <span class="line-no"><xsl:value-of select="@line"/></span> 
             <span class="line-value"><xsl:value-of select="concat(text(), ' ')"/></span>
         </div>  
