@@ -3,9 +3,12 @@ package cucumber.catalog.xml;
 import java.util.ArrayList;
 import java.util.List;
 
+import javax.xml.bind.annotation.XmlAttribute;
 import javax.xml.bind.annotation.XmlElement;
+import javax.xml.bind.annotation.XmlElementWrapper;
 import javax.xml.bind.annotation.XmlElements;
 import javax.xml.bind.annotation.XmlRootElement;
+import javax.xml.bind.annotation.XmlValue;
 
 @XmlRootElement(name = "catalog")
 public class CatalogModel {
@@ -39,9 +42,32 @@ public class CatalogModel {
 
         @XmlElement
         public String name;
+        
+        @XmlElement(name="source")
+        public SourceFile source = new SourceFile();
 
         @XmlElements(@XmlElement(name = "step"))
         public List<Step> steps = new ArrayList<Step>();
+    }
+    
+    public static class SourceFile {
+        
+        @XmlElement
+        public String name;
+        
+        @XmlElements(@XmlElement(name = "line"))
+        public List<SourceLine> lines;
+        
+    }
+
+    public static class SourceLine {
+        
+        @XmlAttribute
+        public int line;
+        
+        @XmlValue
+        public String content;
+        
     }
 
     public static class Step {
@@ -54,7 +80,10 @@ public class CatalogModel {
         
         @XmlElement
         public String pattern;
-
+        
+//        @XmlElement
+//        public String source;
+        
         @XmlElement
         public String description;
 

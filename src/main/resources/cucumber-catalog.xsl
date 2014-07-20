@@ -65,8 +65,10 @@
                     }
                     
                     #content {
-                        margin-left: 420;
+                        margin-left: 420px;
                         padding: 0 10px;
+                        height: 100%;
+                        overflow: scroll;
                     }
                     
                     span.annotation {
@@ -87,11 +89,59 @@
                     }
 
                     .javadoc {
-                        white-space: pre-wrap;
+                        --white-space: pre-wrap;
                     }
                     
                     .javadoc pre, .javadoc code {
                         background-color: #eee;
+                    }
+                    
+                    body.with-source #sources {
+                        display: block;
+                    }
+                    
+                    body.with-source #sources {
+                        display: block;
+                    }
+                    
+                    #sources {
+                        position: fixed;
+                        right: 0;
+                        left: 420px;
+                        bottom: 0;
+                        height: 500px;
+                        overflow: hidden;
+                        overflow-y: scroll;
+                        padding: 10px;
+                        background-color: #eee;
+                        display: none;
+                    }
+                    
+                    .source-line {
+                        white-space: nowrap;
+                        font-family: monospace;
+                    }
+                    
+                    .source-name {
+                        color: white;
+                        background-color: #999;
+                        padding: 3px;
+                        font-weight: bold;
+                        margin: 10px 0;
+                    }
+                    
+                    .line-no {
+                        display: inline-block;
+                        color: #999;;
+                        width: 3em;
+                    }
+                    
+                    .line-value {
+                        white-space: pre;
+                    }
+                    
+                    :target {
+                        background-color: #fcf6c8;
                     }
 
                 </style>
@@ -107,6 +157,9 @@
                 </div>
                 <div id="content">                
                     <xsl:apply-templates select="package" />
+                </div>
+                <div id="sources">
+                    <xsl:apply-templates select="//source"/>
                 </div>
             </body>
         </html>
@@ -139,6 +192,9 @@
         <ul>
             <xsl:apply-templates select="step" />
         </ul>
+        <!-- 
+        <xsl:apply-templates select="source"/>
+        -->
     </xsl:template>
     
     <xsl:template match="step">
@@ -147,19 +203,31 @@
             
             <xsl:apply-templates select="description"/>
             
-            <p><a href="#" class="filename"><xsl:value-of select="file" />:<xsl:value-of select="lineStart" /></a></p>
+            <p>Source: <a href="#{file}:{lineStart}" class="filename"><xsl:value-of select="file" />:<xsl:value-of select="lineStart" /></a></p>
         </li>
     </xsl:template>
     
     <xsl:template match="description">
         <div class="javadoc">
             <xsl:value-of select="text()" disable-output-escaping="yes"/>
-            <!--
-            <xsl:text disable-output-escaping="yes">
-                <xsl:value-of select="text()"/>
-            </xsl:text>
-            -->
         </div>
+    </xsl:template>
+    
+    <xsl:template match="source">
+        <div class="source">
+            <div class="source-name">
+                <xsl:value-of select="name"/>
+            </div>
+            <xsl:apply-templates select="line"/>
+        </div>
+    </xsl:template>
+    
+    <xsl:template match="source/line">
+        <div class="source-line" data-line="{@line}" id="{../name}:{@line}">
+            <!-- <a name="{../name}:{@line}"/> -->
+            <span class="line-no"><xsl:value-of select="@line"/></span> 
+            <span class="line-value"><xsl:value-of select="concat(text(), ' ')"/></span>
+        </div>  
     </xsl:template>
     
     <xsl:template match="*">

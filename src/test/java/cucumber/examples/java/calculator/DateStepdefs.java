@@ -21,12 +21,14 @@ public class DateStepdefs {
     }
 
     /**
-     * We don't need to use @Format here, since the date string in the step
-     * conforms to <code>SimpleDateFormat.SHORT</code>. Cucumber has built-in support for
-     * <code>SimpleDateFormat.SHORT</code>, <code>SimpleDateFormat.MEDIUM</code>,
-     * <code>SimpleDateFormat.LONG</code> and <code>SimpleDateFormat.FULL</code>.
-     *
-     * @see <a href="http://docs.oracle.com/javase/7/docs/api/java/text/SimpleDateFormat.html">SimpleDateFormat</a>
+     * We don't need to use `@Format` here, since the date string in the step
+     * conforms to `SimpleDateFormat.SHORT`. Cucumber has built-in support for `SimpleDateFormat.SHORT`,
+     * `SimpleDateFormat.MEDIUM`, `SimpleDateFormat.LONG` and `SimpleDateFormat.FULL`.
+     * 
+     *     Scenario: Determine past date
+     *     Given today is 2011-01-20
+     *     When I ask if Jan 19, 2011 is in the past
+     *     Then the result should be yes
      */
     @When("^I ask if (.+) is in the past$")
     public void I_ask_if_date_is_in_the_past(Date date) {
