@@ -4,4 +4,7 @@
 # -processor <class1>[,<class2>,<class3>...] Names of the annotation processors to run; bypasses default discovery process
 # -processorpath <path>      Specify where to find annotation processors
 
-javac -cp "target/classes:target/dependency/*" -proc:only src/test/java/cucumber/examples/java/calculator/*
+#javac -cp "target/classes:target/dependency/*" -proc:only src/test/java/cucumber/examples/java/calculator/*
+
+find src/test/java -name "*.java" -print | xargs javac -cp "target/classes:target/dependency/*" -proc:only
+

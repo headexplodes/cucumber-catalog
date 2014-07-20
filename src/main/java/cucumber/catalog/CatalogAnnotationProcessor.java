@@ -1,6 +1,8 @@
 package cucumber.catalog;
 
 import java.io.File;
+import java.io.IOException;
+import java.io.InputStream;
 import java.util.Set;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -13,7 +15,15 @@ import javax.lang.model.element.Element;
 import javax.lang.model.element.TypeElement;
 import javax.lang.model.util.Elements;
 import javax.tools.Diagnostic;
-import javax.xml.bind.JAXB;
+import javax.xml.bind.JAXBContext;
+import javax.xml.bind.JAXBException;
+import javax.xml.bind.util.JAXBSource;
+import javax.xml.transform.Source;
+import javax.xml.transform.Transformer;
+import javax.xml.transform.TransformerException;
+import javax.xml.transform.TransformerFactory;
+import javax.xml.transform.stream.StreamResult;
+import javax.xml.transform.stream.StreamSource;
 
 import com.sun.tools.javac.model.JavacElements;
 
@@ -44,9 +54,34 @@ public class CatalogAnnotationProcessor extends AbstractProcessor {
         }
 
         if (foundMethod) { // only write file if we actually found something
-            String outputFile = System.getProperty("catalog.output.file",
-                    "cucumber-catalog.xml");
-            JAXB.marshal(model, new File(outputFile));
+            
+            String outputFilename = System.getProperty("catalog.output.file",
+                    "cucumber-catalog.html");
+            
+            File outputFile = new File(outputFilename);
+            
+            //JAXB.marshal(model, outputFile);
+            
+            try {
+                JAXBContext ctx = JAXBContext.newInstance(CatalogModel.class);
+                
+                InputStream xsltStream = getClass().getResourceAsStream("/cucumber-catalog.xsl");
+                try {
+                
+                    TransformerFactory factory = TransformerFactory.newInstance();
+                    Source xslt = new StreamSource(xsltStream);
+                    Transformer transformer = factory.newTransformer(xslt);
+    
+                    Source text = new JAXBSource(ctx, model);
+                    transformer.transform(text, new StreamResult(outputFile));
+                    
+                } finally {
+                    xsltStream.close();
+                }
+                
+            } catch (IOException | TransformerException | JAXBException e) {
+                throw new RuntimeException("Error writing output file", e);
+            }
 
             processingEnv.getMessager().printMessage(Diagnostic.Kind.NOTE,
                     String.format("Writing catalog XML to: %s", outputFile));
@@ -57,8 +92,10 @@ public class CatalogAnnotationProcessor extends AbstractProcessor {
 
     public void addStep(Element elem) {
         Step step = new Step();
+
+        step.type = stepType(elem);
         step.method = elem.getSimpleName().toString();
-        step.pattern = stepPattern(elem);
+        step.pattern = stepPatternStripped(elem);
         step.file = sourceFile(elem);
         step.lineStart = sourceLine(elem);
         step.description = processingEnv.getElementUtils().getDocComment(elem);
@@ -109,6 +146,43 @@ public class CatalogAnnotationProcessor extends AbstractProcessor {
             throw new RuntimeException(
                     "Expected enclosing element to be TypeElement");
         }
+    }
+
+    private static final Pattern STRIP_ANCHORS = Pattern
+            .compile("^\\^(.+)\\$$");
+
+    private String stepPatternStripped(Element elem) {
+        String unstripped = stepPattern(elem);
+        Matcher m = STRIP_ANCHORS.matcher(unstripped);
+        if (m.matches()) {
+            return m.group(1);
+        } else {
+            return unstripped;
+        }
+    }
+
+    private String stepType(Element elem) {
+        Given given = elem.getAnnotation(Given.class);
+        if (given != null) {
+            return "Given";
+        }
+        When when = elem.getAnnotation(When.class);
+        if (when != null) {
+            return "When";
+        }
+        Then then = elem.getAnnotation(Then.class);
+        if (then != null) {
+            return "Then";
+        }
+        And and = elem.getAnnotation(And.class);
+        if (and != null) {
+            return "And"; // really should never be used to define a step
+        }
+        But but = elem.getAnnotation(But.class);
+        if (but != null) {
+            return "But"; // really should never be used to define a step
+        }
+        throw new RuntimeException("Couldn't find step def annotation");
     }
 
     private String stepPattern(Element elem) {

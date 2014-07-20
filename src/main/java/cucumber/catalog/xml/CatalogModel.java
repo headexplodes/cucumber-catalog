@@ -47,6 +47,9 @@ public class CatalogModel {
     public static class Step {
 
         @XmlElement
+        public String type; // Given etc.
+        
+        @XmlElement
         public String method;
         
         @XmlElement
